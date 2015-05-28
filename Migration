@@ -1,0 +1,29 @@
+@echo off
+
+REM This script will switch a user's Print Server from mosmisc1 to mosmisc2
+
+if exist c:\winnt\bainupd\prnmigMOS1.txt goto END
+regedit /e %temp%\MigPrn1.reg "HKEY_CURRENT_USER\Printers"
+regedit /e %temp%\MigPrn2.reg "HKEY_CURRENT_USER\Software\Microsoft\Windows NT\CurrentVersion\Devices"
+regedit /e %temp%\MigPrn3.reg "HKEY_CURRENT_USER\Software\Microsoft\Windows NT\CurrentVersion\PrinterPorts"
+regedit /e %temp%\MigPrn4.reg "HKEY_CURRENT_USER\Software\Microsoft\Windows NT\CurrentVersion\Windows"
+type %temp%\migprn1.reg > %temp%\migprn1A.reg
+type %temp%\migprn2.reg > %temp%\migprn2B.reg
+type %temp%\migprn3.reg > %temp%\migprn3C.reg
+type %temp%\migprn4.reg > %temp%\migprn4D.reg
+start /MIN /w strmod %temp%\MigPrn1A.reg mosmisc1 mosmisc2
+start /MIN /w strmod %temp%\MigPrn2B.reg mosmisc1 mosmisc2
+start /MIN /w strmod %temp%\MigPrn3C.reg mosmisc1 mosmisc2
+start /MIN /w strmod %temp%\MigPrn4D.reg mosmisc1 mosmisc2
+reg delete "HKEY_CURRENT_USER\Printers\Connections" /f
+reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Print\Providers\LanMan Print Services\Servers\mosmisc1" /f
+regedit /s %temp%\MigPrn1A.reg
+regedit /s %temp%\MigPrn2B.reg
+regedit /s %temp%\MigPrn3C.reg
+regedit /s %temp%\MigPrn4D.reg
+net stop spooler
+net start spooler
+del %temp%\Migprn*.reg
+echo Moscow Printer migration from mosmisc1 to mosmisc2 complete %DATE% %TIME% > C:\winnt\bainupd\prnmigMOS1.txt
+
+:END
